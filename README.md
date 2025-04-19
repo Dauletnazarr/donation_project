@@ -37,6 +37,8 @@ docker compose up
 ```
 
 ## Можете после этого зайти в админ-панель
+username: admin   
+password: admin
 ```
 127.0.0.1:8000/admin/
 ```
