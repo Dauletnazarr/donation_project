@@ -1,0 +1,67 @@
+version: "3.12"
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: donation_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    networks:
+      - backend
+    env_file:
+      - .env
+
+  web:
+    build: .
+    command: >
+      sh -c "poetry run python manage.py migrate &&
+             poetry run python manage.py collectstatic --noinput &&
+             poetry run python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - ./sent_emails:/app/sent_emails
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+    environment:
+      POSTGRES_DB: donation_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+    env_file:
+      - .env
+
+  celery:
+    build: .
+    command: poetry run celery -A config worker --loglevel=info
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - backend
+
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+    driver: bridge

@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Django
+*.sqlite3
+db.sqlite3
+*.pot
+*.pyc
+local_settings.py
+.env
+.env.*
+
+# VSCode / PyCharm
+.vscode/
+.idea/
+
+# Poetry
+poetry.lock
+*.lock
+
+# Celery
+celerybeat-schedule
+
+# Media and static
+/media
+/static
+sent_emails/
+
+# Docker
+*.pid
+*.seed
+*.bak
+*.swp
+*.tmp
+*.log
+*.out
+docker-compose.override.yml
+
+# Git
+*.orig
+*.rej
+.DS_Store
+Thumbs.db
