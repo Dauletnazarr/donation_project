@@ -10,12 +10,6 @@ WORKDIR /app
 # Создаем папку для сохранения отправленных писем
 RUN mkdir /app/sent_emails
 
-# Копируем скрипт entrypoint внутрь контейнера
-#COPY entrypoint.sh /app/entrypoint.sh
-#
-## Делаем скрипт исполняемым (не обязательно на Windows, но желательно на Unix)
-#RUN chmod +x /app/entrypoint.sh
-
 # Копируем файлы проекта в контейнер
 COPY pyproject.toml poetry.lock /app/
 
@@ -27,9 +21,6 @@ COPY . /app/
 
 # Открываем порт
 EXPOSE 8000
-
-# Указываем entrypoint
-#ENTRYPOINT ["sh", "/app/entrypoint.sh"]
 
 # Команда для запуска сервера Django
 CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]

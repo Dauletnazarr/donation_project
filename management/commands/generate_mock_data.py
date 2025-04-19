@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         if Collect.objects.exists():
-            self.stdout.write(self.style.WARNING('Данные уже существуют. Генерация моков пропущена.'))
+            self.stdout.write(self.style.WARNING('✅ Данные уже существуют. Генерация моков пропущена.'))
             return
         fake = Faker('ru_RU')
 
@@ -98,4 +98,4 @@ class Command(BaseCommand):
                     except:
                         continue
 
-        self.stdout.write(self.style.SUCCESS('Successfully generated mock data including likes and comments'))
+        self.stdout.write(self.style.SUCCESS('✅ Моковые данные созданы успешно'))

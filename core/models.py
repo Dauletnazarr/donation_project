@@ -8,6 +8,12 @@ from core.constants import SHORT_LINK_MAX_LENGTH
 
 
 class Collect(models.Model):
+    """
+    Модель сбора средств (Collect).
+
+    Представляет собой кампанию по сбору денег, привязанную к пользователю-автору.
+    Содержит информацию о цели сбора, описании, обложке, короткой ссылке, дате окончания и других метаданных.
+    """
     OCCASION_CHOICES = [
         ('birthday', 'День рождения'),
         ('wedding', 'Свадьба'),
@@ -80,7 +86,10 @@ class Collect(models.Model):
 
     def generate_unique_short_url(self):
         """
-        Генерация уникальной короткой ссылки.
+        Генерирует уникальную короткую ссылку для сбора.
+
+        Возвращает:
+            str: Уникальная 8-символьная строка.
         """
         while True:
             short_link = str(uuid.uuid4())[:8]  # Генерируем короткую ссылку
@@ -88,11 +97,22 @@ class Collect(models.Model):
                 return short_link
 
     def get_absolute_url(self):
+        """
+        Возвращает абсолютный URL для просмотра сбора.
+
+        Returns:
+            str: URL, сгенерированный с помощью `reverse`.
+        """
         # Возвращаем полный URL для отображения сбора
         return reverse('collect-detail', kwargs={'pk': self.pk})
 
 
 class Payment(models.Model):
+    """
+    Модель платежа, связанного со сбором (Collect).
+
+    Хранит информацию о сумме платежа, дате и доноре.
+    """
     collect = models.ForeignKey(
         Collect,
         on_delete=models.CASCADE,
@@ -126,6 +146,11 @@ class Payment(models.Model):
 
 
 class PaymentInteractionBase(models.Model):
+    """
+    Абстрактная базовая модель взаимодействий с платежами.
+
+    Используется для создания лайков и комментариев, содержит пользователя и дату создания.
+    """
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -136,6 +161,11 @@ class PaymentInteractionBase(models.Model):
 
 
 class PaymentLike(PaymentInteractionBase):
+    """
+    Модель лайка на платеж.
+
+    Уникальный лайк одного пользователя к одному платежу.
+    """
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='likes')
     class Meta(PaymentInteractionBase.Meta):
         constraints = [
@@ -146,6 +176,11 @@ class PaymentLike(PaymentInteractionBase):
 
 
 class PaymentComment(PaymentInteractionBase):
+    """
+    Модель комментария к платежу.
+
+    Один пользователь может оставить только один комментарий к конкретному платежу.
+    """
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
 

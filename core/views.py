@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -20,10 +21,51 @@ from .tasks import send_donation_emails
 
 
 class CollectViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для работы с сборами. Поддерживает CRUD-операции для сборов,
+    а также кэширование данных для ускорения работы с часто запрашиваемыми коллекциями.
+    """
     queryset = Collect.objects.select_related('author').prefetch_related('payments')
     serializer_class = CollectSerializer
     permission_classes = [AuthorOrReadOnly]
     pagination_class = Pagination
+
+    def get_cache_key(self, request, pk=None):
+        """
+        Генерирует уникальный ключ кэша для каждого запроса.
+
+        Аргументы:
+            request (Request): Запрос, содержащий параметры страницы и лимита.
+
+        Возвращает:
+            str: Уникальный ключ кэша.
+        """
+        page = request.query_params.get('page', 1)
+        limit = request.query_params.get('limit', 10)
+        return f"collects_page_{page}_limit_{limit}"
+
+    def list(self, request, *args, **kwargs):
+        """
+        Возвращает список всех сборов, с возможностью использования кэша.
+
+        Если данные есть в кэше, они возвращаются из кэша. Если данных нет, выполняется запрос
+        к базе данных и результат кэшируется на 1 час.
+
+        Аргументы:
+            request (Request): Запрос на получение списка сборов.
+
+        Возвращает:
+            Response: Ответ с данными о сборах.
+        """
+        cache_key = self.get_cache_key(request)
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+
+        # Если данные нет в кэше, выполняем запрос
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, timeout=3600)  # Кэшируем данные на 1 час
+        return response
 
     def perform_create(self, serializer):
         collect = serializer.save(author=self.request.user)
@@ -47,33 +89,62 @@ class CollectViewSet(viewsets.ModelViewSet):
 
         return Response({"short-link": short_url}, status=status.HTTP_200_OK)
 
+
 class PaymentViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для работы с платежами. Поддерживает CRUD-операции для платежей,
+    привязанных к конкретному сбору.
+    """
     serializer_class = PaymentSerializer
     permission_classes = [DonorOrReadOnly]
 
     def get_collect(self):
+        """
+        Получает объект сбора (Collect), привязанный к текущему платежу.
+
+        Возвращает:
+            Collect: Объект сбора, к которому привязан платеж.
+
+        Исключения:
+            Http404: Если сбор не найден.
+        """
         if getattr(self, 'swagger_fake_view', False):
             return None
         return get_object_or_404(Collect, id=self.kwargs.get('collect_id'))
 
     def get_queryset(self):
         """
-        Возвращаем платежи, привязанные к конкретному сбору.
+        Возвращает все платежи, привязанные к конкретному сбору.
+
+        Возвращает:
+            QuerySet: Список платежей для конкретного сбора.
         """
         collect = self.get_collect()
         if collect is None:
-            return Collect.objects.none()  # или просто []
+            return Collect.objects.none()
         return collect.payments.all()
 
     def perform_create(self, serializer):
+        """
+        Создает новый платеж, ассоциируя его с текущим пользователем и сбором.
+
+        Аргументы:
+            serializer (PaymentSerializer): Сериализатор для создания нового платежа.
+
+        Также:
+            - Инвалидация кэша для страницы с платежами.
+            - Обновление суммы сбора и количества доноров.
+        """
         donor = self.request.user
         collect = self.get_collect()
         payment = serializer.save(collect=collect, donor=donor)
 
+        # Инвалидация кэша
+        cache.delete(f"collects_page_1_limit_10")
+
         collect.collected_amount += payment.amount
         collect.donors_count += 1
         collect.save()
-        print('aaa')
         send_donation_emails.delay(donor.email, collect.author.email, payment.amount)
 
 
@@ -110,9 +181,19 @@ class CommentsLikesBaseViewSet(viewsets.ModelViewSet):
 
 
 class PaymentLikeViewSet(CommentsLikesBaseViewSet):
+    """
+    ViewSet для управления лайками платежей.
+    Позволяет получать список лайков, ассоциированных с конкретным платежом.
+    """
     serializer_class = PaymentLikeSerializer
 
     def get_queryset(self):
+        """
+        Получаем все лайки, связанные с конкретным платежом.
+
+        Возвращает:
+            QuerySet: Список лайков, ассоциированных с платежом.
+        """
         payment = self.get_payment()
         if not payment:
             return None
@@ -120,17 +201,40 @@ class PaymentLikeViewSet(CommentsLikesBaseViewSet):
 
 
 class PaymentCommentViewSet(CommentsLikesBaseViewSet):
+    """
+    ViewSet для управления комментариями на платежах.
+    Позволяет получать список комментариев, ассоциированных с конкретным платежом.
+    """
     serializer_class = PaymentCommentSerializer
 
     def get_queryset(self):
+        """
+        Получаем все комментарии, связанные с конкретным платежом.
+
+        Возвращает:
+            QuerySet: Список комментариев, ассоциированных с платежом.
+        """
         payment = self.get_payment()
         if not payment:
             return None
         return payment.comments.all()
 
 
+
 class RegisterView(APIView):
+    """
+    View для регистрации нового пользователя.
+    """
     def post(self, request):
+        """
+        Регистрирует нового пользователя, принимая данные из запроса.
+
+        Аргументы:
+            request (Request): Данные пользователя для регистрации.
+
+        Возвращает:
+            Response: Ответ с результатом регистрации (успех или ошибка).
+        """
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
