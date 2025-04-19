@@ -46,6 +46,8 @@ docker compose up
 127.0.0.1:8000/swagger/
 ```
 
+## При желании можете использовать Postman коллекцию из соответствующей папки
+
 ## Авторы
 Проект разработан:
 * [Dauletnazar Mambetnazarov.](https://github.com/Dauletnazarr/)
