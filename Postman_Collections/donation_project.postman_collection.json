@@ -1,0 +1,355 @@
+{
+	"info": {
+		"_postman_id": "64ddb496-5da8-48c8-8544-300d861e1b9a",
+		"name": "donation_project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "39339929"
+	},
+	"item": [
+		{
+			"name": "Регистрация",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"user1\",\r\n    \"email\": \"emaissl@exampleуss.com\",\r\n    \"password\": \"useruser\",\r\n    \"password2\": \"useruser\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://127.0.0.1:8000/api/v1/register/"
+			},
+			"response": []
+		},
+		{
+			"name": "Логин",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let data = pm.response.json();\r",
+							"pm.collectionVariables.set(\"access_token\", data.access);\r",
+							"pm.collectionVariables.set(\"refresh_token\", data.refresh);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"user1\",\r\n    \"password\": \"useruser\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://127.0.0.1:8000/api/v1/login/"
+			},
+			"response": []
+		},
+		{
+			"name": "Создание сборов",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cover_image",
+							"type": "file",
+							"src": "/C:/Users/MSI/OneDrive/Рабочий стол/2wgcYOZfpjU.jpg"
+						},
+						{
+							"key": "title",
+							"value": "Сборы на днюху",
+							"type": "text"
+						},
+						{
+							"key": "occasion",
+							"value": "birthday",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Крч васин день рождения. Вот собираем бабосики",
+							"type": "text"
+						},
+						{
+							"key": "end_datetime",
+							"value": "2025-04-20T10:00:00",
+							"type": "text"
+						},
+						{
+							"key": "goal_amount",
+							"value": "1000",
+							"type": "text"
+						},
+						{
+							"key": "payments",
+							"value": "5",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/"
+			},
+			"response": []
+		},
+		{
+			"name": "Удаление сбора",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cover_image",
+							"type": "file",
+							"src": "/C:/Users/MSI/OneDrive/Рабочий стол/2wgcYOZfpjU.jpg"
+						},
+						{
+							"key": "title",
+							"value": "Сборы на днюху",
+							"type": "text"
+						},
+						{
+							"key": "occasion",
+							"value": "birthday",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Крч васин день рождения. Вот собираем бабосики",
+							"type": "text"
+						},
+						{
+							"key": "end_datetime",
+							"value": "2025-04-20T10:00:00",
+							"type": "text"
+						},
+						{
+							"key": "goal_amount",
+							"value": "1000",
+							"type": "text"
+						},
+						{
+							"key": "payments",
+							"value": "5",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/21/"
+			},
+			"response": []
+		},
+		{
+			"name": "Создание донатов",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "amount",
+							"value": "1222",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/201/payments/"
+			},
+			"response": []
+		},
+		{
+			"name": "Создание лайков",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "amount",
+							"value": "50",
+							"type": "text"
+						},
+						{
+							"key": "collect",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/201/payments/5001/likes/"
+			},
+			"response": []
+		},
+		{
+			"name": "Создание комментариев",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "text",
+							"value": "Чётко ты задонатил уасяяяя",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/201/payments/5001/comments/"
+			},
+			"response": []
+		},
+		{
+			"name": "Удаление доната",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/199/payments/5010/"
+			},
+			"response": []
+		},
+		{
+			"name": "Все сборы",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/"
+			},
+			"response": []
+		},
+		{
+			"name": "Один сбор",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/201"
+			},
+			"response": []
+		},
+		{
+			"name": "Один платёж",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/201/payments/5001"
+			},
+			"response": []
+		},
+		{
+			"name": "Один коммент",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/200/payments/5001/comments/"
+			},
+			"response": []
+		},
+		{
+			"name": "Короткая ссылка",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": "http://127.0.0.1:8000/api/v1/collects/200/get-link/"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": {
+			"token": "{{access_token}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "refresh_token",
+			"value": ""
+		}
+	]
+}
