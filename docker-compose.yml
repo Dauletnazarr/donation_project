@@ -22,9 +22,13 @@ services:
   web:
     build: .
     command: >
-      sh -c "poetry run python manage.py migrate &&
-             poetry run python manage.py collectstatic --noinput &&
-             poetry run python manage.py runserver 0.0.0.0:8000"
+      sh -c "
+        poetry run python manage.py makemigrations &&
+        poetry run python manage.py migrate &&
+        poetry run python create_superuser.py &&
+        poetry run python run_mock_data.py &&
+        poetry run python manage.py runserver 0.0.0.0:8000
+      "
     volumes:
       - .:/app
       - ./sent_emails:/app/sent_emails
@@ -57,7 +61,6 @@ services:
       - .env
     networks:
       - backend
-
 
 volumes:
   postgres_data:

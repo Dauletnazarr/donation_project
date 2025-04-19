@@ -94,11 +94,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username', 'password', 'password2', 'first_name', 'last_name', 'email']
 
     def validate(self, attrs):
+        # Проверка на совпадение паролей
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Пароли не совпадают."})
+
+        # Проверка на обязательность поля email
+        if not attrs.get('email'):
+            raise serializers.ValidationError({"email": "Это поле обязательно."})
+
+        # Проверка уникальности email
+        if User.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError({"email": "Этот email уже зарегистрирован."})
+
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password2')
-        user = User.objects.create_user(**validated_data)
+        validated_data.pop('password2')  # Удаляем второе поле пароля
+        user = User.objects.create_user(**validated_data)  # Создаём пользователя с паролем
         return user
