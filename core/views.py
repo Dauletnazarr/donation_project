@@ -17,7 +17,7 @@ from .serializers import (
     CollectSerializer, PaymentSerializer, RegisterSerializer,
     PaymentCommentSerializer, PaymentLikeSerializer
 )
-from .tasks import send_donation_emails
+from .tasks import send_donation_emails, send_collect_creation_email
 
 
 class CollectViewSet(viewsets.ModelViewSet):
@@ -71,7 +71,7 @@ class CollectViewSet(viewsets.ModelViewSet):
         collect = serializer.save(author=self.request.user)
 
         # Отправляем email автору о создании сбора
-        send_donation_emails.delay(None, collect.author.email, 0, collect.title)  # Нет доната, но уведомление о сборе
+        send_collect_creation_email.delay(collect.author.email, collect.title)
 
         # Инвалидация кэша
         cache.delete(f"collects_page_1_limit_10")

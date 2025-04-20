@@ -1,8 +1,9 @@
 import traceback
+from email.header import Header
 
 from celery import shared_task
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 import os
 print("📦 DJANGO_SETTINGS_MODULE =", os.getenv("DJANGO_SETTINGS_MODULE"))
 
@@ -25,25 +26,46 @@ def send_donation_emails(donor_email, author_email, amount, collect_title=None):
 
     try:
         # Письмо донору
-        send_mail(
-            subject='Спасибо за донат!',
-            message=f'Вы отправили {amount} ₽ на сбор "{collect_title}".',
+        EmailMessage(
+            subject=str(Header('Спасибо за донат!', 'utf-8')),
+            body=f'Вы отправили {amount} ₽.',
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[donor_email],
-            fail_silently=False,
-        )
+            to=[donor_email],
+        ).send(fail_silently=False)
 
         # Письмо автору
-        send_mail(
-            subject=f'Новый донат для сбора "{collect_title}"',
-            message=f'Вы получили донат на сумму {amount} ₽.',
+        EmailMessage(
+            subject=str(Header('Новый донат на ваш сбор', 'utf-8')),
+            body=f'Вы получили донат на сумму {amount} ₽.',
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[author_email],
-            fail_silently=False,
-        )
+            to=[author_email],
+        ).send(fail_silently=False)
 
-        print("📬 Письма отправлены.")
-
-    except Exception as e:
+    except Exception:
         print("❌ Ошибка при отправке писем:")
         print(traceback.format_exc())
+
+
+@shared_task
+def send_collect_creation_email(author_email, collect_title):
+    """
+    Отправляет письмо автору сбора с уведомлением о том, что сбор был успешно создан.
+
+    Аргументы:
+        author_email (str): Email автора сбора.
+        collect_title (str): Название сбора.
+    """
+    print("📨 Старт отправки письма о создании сбора...")
+
+    try:
+        EmailMessage(
+            subject=str(Header('Сбор успешно создан', 'utf-8')),
+            body=f'Ваш сбор «{collect_title}» был успешно создан.',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[author_email],
+        ).send(fail_silently=False)
+
+    except Exception:
+        print("❌ Ошибка при отправке письма:")
+        print(traceback.format_exc())
+
