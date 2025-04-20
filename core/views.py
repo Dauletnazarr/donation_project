@@ -70,6 +70,14 @@ class CollectViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         collect = serializer.save(author=self.request.user)
 
+        # Отправляем email автору о создании сбора
+        send_donation_emails.delay(None, collect.author.email, 0, collect.title)  # Нет доната, но уведомление о сборе
+
+        # Инвалидация кэша
+        cache.delete(f"collects_page_1_limit_10")
+
+        return collect
+
     @action(detail=True, methods=['get'], permission_classes=[AllowAny],
             url_path='get-link')
     def get_link(self, request, pk=None):
@@ -145,7 +153,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         collect.collected_amount += payment.amount
         collect.donors_count += 1
         collect.save()
-        send_donation_emails.delay(donor.email, collect.author.email, payment.amount)
+        send_donation_emails.delay(donor.email, collect.author.email, payment.amount, collect.title)
 
 
 class CommentsLikesBaseViewSet(viewsets.ModelViewSet):
