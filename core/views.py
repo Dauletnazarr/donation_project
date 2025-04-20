@@ -71,6 +71,10 @@ class CollectViewSet(viewsets.ModelViewSet):
         collect = serializer.save(author=self.request.user)
 
         # Отправляем email автору о создании сбора
+        send_collect_creation_email.apply_async(
+            args=[collect.author.email, collect.title],
+            queue='emails'
+        )
         send_collect_creation_email.delay(collect.author.email, collect.title)
 
         # Инвалидация кэша

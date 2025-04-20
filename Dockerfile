@@ -4,11 +4,12 @@ FROM python:3.12-slim
 # Устанавливаем зависимость для Poetry
 RUN pip install --no-cache-dir poetry
 
+# Установим Celery
+RUN pip install celery
+
+
 # Устанавливаем рабочую директорию
 WORKDIR /app
-
-# Создаем папку для сохранения отправленных писем
-RUN mkdir /app/sent_emails
 
 # Копируем файлы проекта в контейнер
 COPY pyproject.toml poetry.lock /app/
