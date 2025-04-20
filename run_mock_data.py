@@ -8,7 +8,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'  # Замените н�
 import django
 django.setup()
 
-from management.commands.generate_mock_data import Command
+from core.management.commands.generate_mock_data import Command
 
 # Создаём экземпляр команды и вызываем её
 command = Command()
