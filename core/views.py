@@ -27,7 +27,7 @@ class CollectViewSet(viewsets.ModelViewSet):
     """
     queryset = Collect.objects.select_related('author').prefetch_related('payments')
     serializer_class = CollectSerializer
-    permission_classes = [AuthorOrReadOnly]
+    permission_classes = [AuthorOrReadOnly,]
     pagination_class = Pagination
 
     def get_cache_key(self, request, pk=None):
